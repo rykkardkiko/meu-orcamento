@@ -143,7 +143,16 @@ async function init() {
     message("auth-status", "Não foi possível carregar a biblioteca. Verifica a ligação à Internet.");
     return;
   }
-  db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY);
+ 
+db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage
+  }
+});
+;
   const {data, error} = await db.auth.getSession();
   if (error) message("auth-status", error.message);
   if (data?.session) await showApp(data.session.user);
@@ -303,14 +312,7 @@ $("movement-form").addEventListener("submit", async event => {
 });
 
 db = null;
-init(db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage
-  }
-});
+init();
 </script>
 </body>
 </html>
