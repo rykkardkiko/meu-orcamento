@@ -303,7 +303,14 @@ $("movement-form").addEventListener("submit", async event => {
 });
 
 db = null;
-init();
+init(db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage
+  }
+}););
 </script>
 </body>
 </html>
