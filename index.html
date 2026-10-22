@@ -152,7 +152,6 @@ db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     storage: window.localStorage
   }
 });
-;
   const {data, error} = await db.auth.getSession();
   if (error) message("auth-status", error.message);
   if (data?.session) await showApp(data.session.user);
