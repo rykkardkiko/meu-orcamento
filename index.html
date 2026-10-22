@@ -4,322 +4,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#173d35">
 <title>Meu Orçamento</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --green: #173d35;
-  --light: #e7f3ed;
-  --bg: #f4f6f5;
-  --text: #202b27;
-  --muted: #697670;
-  --red: #b94343;
-  --border: #e1e7e3;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-}
-header {
-  background: var(--green);
-  color: white;
-  padding: 24px max(18px, calc((100% - 1050px)/2));
-}
-header h1 { margin: 0 0 6px; font-size: 25px; }
-header p { margin: 0; color: #d3e5dc; font-size: 14px; }
-main { max-width: 1050px; margin: auto; padding: 22px 16px 40px; }
-.month-row {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
-}
-.month-row label { font-weight: 700; }
-input, select, button {
-  font: inherit; border-radius: 9px; padding: 11px;
-}
-input, select {
-  border: 1px solid #ccd6d0; background: white; width: 100%;
-  min-width: 0; color: var(--text);
-}
-.month-row input { width: auto; }
-.cards {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 14px; margin-bottom: 22px;
-}
-.card, .panel {
-  background: white; border: 1px solid var(--border);
-  border-radius: 14px; padding: 18px;
-}
-.card span { color: var(--muted); font-size: 13px; }
-.card strong { display: block; font-size: clamp(18px, 3vw, 25px); margin-top: 10px; overflow-wrap: anywhere; }
-.income { color: #24804f; }
-.expense { color: var(--red); }
-.panel { margin-bottom: 20px; }
-.panel h2 { margin: 0 0 17px; font-size: 19px; }
-form {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 13px;
-}
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 13px; font-weight: 700; }
-.full { grid-column: 1 / -1; }
-button {
-  border: 0; background: var(--green); color: white;
-  font-weight: 700; cursor: pointer;
-}
-button:hover { opacity: .9; }
-.secondary { background: var(--light); color: var(--green); }
-.delete { background: #fff0f0; color: var(--red); padding: 8px 10px; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); }
-th { color: var(--muted); font-size: 12px; }
-td:last-child, th:last-child { text-align: right; }
-.empty { text-align: center; padding: 28px 8px; color: var(--muted); }
-footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 20px; }
-@media(max-width: 620px) {
-  main { padding: 16px 12px 28px; }
-  .cards { grid-template-columns: 1fr; gap: 9px; }
-  .card { padding: 14px 16px; }
-  .card strong { margin-top: 5px; }
-  form { grid-template-columns: 1fr; }
-  .full { grid-column: auto; }
-  th, td { padding: 10px 6px; }
-}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6f4;color:#24342c;font-family:Arial,sans-serif}
+header{background:#173d35;color:white;padding:24px}
+main{max-width:850px;margin:auto;padding:18px}
+h1{margin:0 0 6px}h2{font-size:19px}
+.panel,.card{background:white;padding:18px;border-radius:14px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card span{font-size:13px;color:#697670}
+.card strong{display:block;font-size:20px;margin-top:8px;overflow-wrap:anywhere}
+label{display:block;font-size:13px;font-weight:bold;margin:12px 0 5px}
+input,select,button{width:100%;padding:12px;border-radius:8px;font:inherit}
+input,select{border:1px solid #ccd6d0;background:white}
+button{background:#173d35;color:white;border:0;cursor:pointer;margin-top:12px}
+.secondary{background:#e7f3ed;color:#173d35}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{border-bottom:1px solid #e1e7e3;padding:12px 0;overflow-wrap:anywhere}
+.small{font-size:12px;color:#697670}
+.income{color:#24804f}.expense{color:#b94343}
+.hidden{display:none}
+#status{white-space:pre-wrap;font-size:14px}
+@media(max-width:560px){.cards{grid-template-columns:1fr}.card{padding:13px}.row{grid-template-columns:1fr}main{padding:12px}}
 </style>
 </head>
 <body>
 <header>
   <h1>Meu Orçamento</h1>
-  <p>As tuas contas, organizadas num só lugar.</p>
+  <div>O teu orçamento pessoal, sincronizado na nuvem.</div>
 </header>
-
 <main>
-  <div class="month-row">
-    <label for="month">Resumo mensal</label>
-    <input type="month" id="month">
-  </div>
-
-  <section class="cards">
-    <div class="card">
-      <span>Rendimentos</span>
-      <strong class="income" id="income">0,00 €</strong>
-    </div>
-    <div class="card">
-      <span>Despesas</span>
-      <strong class="expense" id="expenses">0,00 €</strong>
-    </div>
-    <div class="card">
-      <span>Saldo do mês</span>
-      <strong id="balance">0,00 €</strong>
-    </div>
+  <section class="panel" id="login">
+    <h2>Aceder à minha conta</h2>
+    <p class="small">Cria uma conta ou inicia sessão com o teu email.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" required>
+    <label for="password">Palavra-passe</label>
+    <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+    <button id="signin">Iniciar sessão</button>
+    <button id="signup" class="secondary">Criar conta</button>
+    <p id="auth-status" role="status"></p>
   </section>
 
-  <section class="panel">
-    <h2>Adicionar movimento</h2>
-    <form id="movement-form">
-      <div class="field">
-        <label for="type">Tipo</label>
-        <select id="type" required>
-          <option value="Despesa">Despesa</option>
-          <option value="Rendimento">Rendimento</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="date">Data</label>
-        <input type="date" id="date" required>
-      </div>
-      <div class="field">
-        <label for="category">Categoria</label>
-        <select id="category" required>
-          <option>Casa</option>
-          <option>Alimentação</option>
-          <option>Carro</option>
-          <option>Combustível</option>
-          <option>Transportes</option>
-          <option>Saúde</option>
-          <option>Educação</option>
-          <option>Ginásio</option>
-          <option>Telecomunicações</option>
-          <option>Seguros</option>
-          <option>Lazer</option>
-          <option>Salário</option>
-          <option>Subsídios</option>
-          <option>Outros</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="amount">Valor (€)</label>
-        <input type="number" id="amount" min="0.01" step="0.01"
-          placeholder="Ex.: 25,50" required>
-      </div>
-      <div class="field full">
+  <section id="app" class="hidden">
+    <section class="panel">
+      <div id="account" class="small"></div>
+      <button id="logout" class="secondary">Terminar sessão</button>
+      <label for="month">Resumo mensal</label>
+      <input id="month" type="month">
+    </section>
+
+    <section class="cards">
+      <div class="card"><span>Rendimentos</span><strong id="income" class="income">0,00 €</strong></div>
+      <div class="card"><span>Despesas</span><strong id="expenses" class="expense">0,00 €</strong></div>
+      <div class="card"><span>Saldo</span><strong id="balance">0,00 €</strong></div>
+    </section>
+
+    <section class="panel">
+      <h2>Novo movimento</h2>
+      <form id="movement-form">
+        <div class="row">
+          <div>
+            <label for="type">Tipo</label>
+            <select id="type"><option>Despesa</option><option>Rendimento</option></select>
+          </div>
+          <div>
+            <label for="date">Data</label>
+            <input id="date" type="date" required>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="category">Categoria</label>
+            <select id="category">
+              <option>Casa</option><option>Alimentação</option>
+              <option>Carro</option><option>Combustível</option>
+              <option>Transportes</option><option>Saúde</option>
+              <option>Educação</option><option>Ginásio</option>
+              <option>Telecomunicações</option><option>Seguros</option>
+              <option>Lazer</option><option>Salário</option>
+              <option>Subsídios</option><option>Outros</option>
+            </select>
+          </div>
+          <div>
+            <label for="amount">Valor (€)</label>
+            <input id="amount" type="number" min="0.01" step="0.01" required>
+          </div>
+        </div>
         <label for="description">Descrição</label>
-        <input type="text" id="description" maxlength="120"
-          placeholder="Ex.: Compra no supermercado">
-      </div>
-      <div class="full">
-        <button type="submit">+ Guardar movimento</button>
-      </div>
-    </form>
-  </section>
+        <input id="description" maxlength="120" placeholder="Ex.: supermercado">
+        <button id="save" type="submit">Guardar movimento</button>
+      </form>
+      <p id="status" role="status"></p>
+    </section>
 
-  <section class="panel">
-    <h2>Movimentos do mês</h2>
-    <div class="actions" style="margin-bottom:14px">
-      <button class="secondary" id="export">Exportar CSV</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th><th>Movimento</th><th>Valor</th><th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="movement-list"></tbody>
-      </table>
-    </div>
-    <div class="empty" id="empty">Ainda não existem movimentos neste mês.</div>
+    <section class="panel">
+      <h2>Movimentos do mês</h2>
+      <div id="list"></div>
+      <button id="refresh" class="secondary">Atualizar movimentos</button>
+    </section>
   </section>
-  <footer>Meu Orçamento · Os teus dados ficam guardados neste navegador.</footer>
 </main>
 
 <script>
+const PROJECT_URL = "https://bvmudqebxgotujxbvhyg.supabase.co";
+const PUBLISHABLE_KEY = "sb_publishable_ET7W3dDaX8N68wqZ0DHMQQ_pbZWk-g1";
+
 const $ = id => document.getElementById(id);
-const money = value => value.toLocaleString("pt-PT", {
-  style: "currency", currency: "EUR"
+const money = n => Number(n).toLocaleString("pt-PT", {
+  style:"currency", currency:"EUR"
 });
-const today = new Date();
-const localDate = [
-  today.getFullYear(),
-  String(today.getMonth() + 1).padStart(2, "0"),
-  String(today.getDate()).padStart(2, "0")
-].join("-");
+const now = new Date();
+const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+$("month").value = today.slice(0,7);
+$("date").value = today;
 
-$("month").value = localDate.slice(0, 7);
-$("date").value = localDate;
-
+let db = null;
+let currentUser = null;
 let movements = [];
-try {
-  const saved = localStorage.getItem("meu-orcamento-movimentos-v1");
-  movements = saved ? JSON.parse(saved) : [];
-  if (!Array.isArray(movements)) movements = [];
-} catch {
-  movements = [];
+
+function message(id, text) { $(id).textContent = text; }
+
+function configurationOK() {
+  return PROJECT_URL.startsWith("https://") &&
+    !PROJECT_URL.includes("COLOCA_AQUI") &&
+    PUBLISHABLE_KEY.length > 20 &&
+    !PUBLISHABLE_KEY.includes("COLOCA_AQUI");
 }
 
-function save() {
-  localStorage.setItem(
-    "meu-orcamento-movimentos-v1",
-    JSON.stringify(movements)
-  );
+async function init() {
+  if (!configurationOK()) {
+    message("auth-status", "Falta preencher PROJECT_URL e PUBLISHABLE_KEY no código.");
+    return;
+  }
+  if (!window.supabase) {
+    message("auth-status", "Não foi possível carregar a biblioteca. Verifica a ligação à Internet.");
+    return;
+  }
+  db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY);
+  const {data, error} = await db.auth.getSession();
+  if (error) message("auth-status", error.message);
+  if (data?.session) await showApp(data.session.user);
+}
+
+async function signIn(signUp) {
+  if (!db) {
+    message("auth-status", "Configura primeiro o URL e a chave pública.");
+    return;
+  }
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  if (!email || password.length < 8) {
+    message("auth-status", "Indica um email válido e uma palavra-passe com pelo menos 8 caracteres.");
+    return;
+  }
+  $("signin").disabled = $("signup").disabled = true;
+  message("auth-status", "A processar...");
+  try {
+    const result = signUp
+      ? await db.auth.signUp({email,password})
+      : await db.auth.signInWithPassword({email,password});
+    if (result.error) throw result.error;
+    if (signUp && !result.data.session) {
+      message("auth-status", "Conta criada. Confirma o email recebido e depois inicia sessão.");
+    } else if (result.data.user) {
+      await showApp(result.data.user);
+      message("auth-status", "");
+    }
+  } catch (e) {
+    message("auth-status", "Não foi possível autenticar: " + e.message);
+  } finally {
+    $("signin").disabled = $("signup").disabled = false;
+  }
+}
+
+async function showApp(user) {
+  currentUser = user;
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  message("account", "Sessão iniciada: " + user.email);
+  await loadMovements();
+}
+
+async function loadMovements() {
+  if (!currentUser) return;
+  message("status", "A carregar movimentos...");
+  const month = $("month").value;
+  const start = month + "-01";
+  const d = new Date(Number(month.slice(0,4)), Number(month.slice(5,7)), 1);
+  const end = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`;
+
+  const {data,error} = await db.from("movimentos")
+    .select("id,user_id,data,tipo,categoria,descricao,valor")
+    .gte("data",start).lt("data",end)
+    .order("data",{ascending:false});
+
+  if (error) {
+    movements = [];
+    render();
+    message("status", "Erro ao carregar: " + error.message);
+    return;
+  }
+  movements = data || [];
+  render();
+  message("status", "");
 }
 
 function render() {
-  const month = $("month").value;
-  const filtered = movements
-    .filter(m => m.date.startsWith(month))
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  const income = filtered
-    .filter(m => m.type === "Rendimento")
-    .reduce((sum, m) => sum + m.amount, 0);
-  const expenses = filtered
-    .filter(m => m.type === "Despesa")
-    .reduce((sum, m) => sum + m.amount, 0);
-  const balance = income - expenses;
-
+  const income = movements.filter(m => m.tipo === "Rendimento")
+    .reduce((s,m) => s + Number(m.valor),0);
+  const expenses = movements.filter(m => m.tipo === "Despesa")
+    .reduce((s,m) => s + Number(m.valor),0);
   $("income").textContent = money(income);
   $("expenses").textContent = money(expenses);
-  $("balance").textContent = money(balance);
-  $("balance").className = balance < 0 ? "expense" : "income";
+  $("balance").textContent = money(income-expenses);
+  $("balance").className = (income-expenses < 0) ? "expense" : "income";
 
-  const list = $("movement-list");
+  const list = $("list");
   list.replaceChildren();
-  $("empty").hidden = filtered.length > 0;
-
-  filtered.forEach(m => {
-    const tr = document.createElement("tr");
-    const date = document.createElement("td");
-    date.textContent = m.date.split("-").reverse().join("/");
-    const detail = document.createElement("td");
-    const name = document.createElement("strong");
-    name.textContent = m.description || m.category;
-    const small = document.createElement("div");
-    small.style.cssText = "color:#697670;font-size:12px;margin-top:4px";
-    small.textContent = m.type + " · " + m.category;
-    detail.append(name, small);
-
-    const amount = document.createElement("td");
-    amount.textContent = (m.type === "Despesa" ? "− " : "+ ") + money(m.amount);
-    amount.className = m.type === "Despesa" ? "expense" : "income";
-
-    const action = document.createElement("td");
-    const btn = document.createElement("button");
-    btn.className = "delete";
-    btn.textContent = "Apagar";
-    btn.setAttribute("aria-label", "Apagar movimento");
-    btn.addEventListener("click", () => {
-      if (confirm("Queres apagar este movimento?")) {
-        movements = movements.filter(item => item.id !== m.id);
-        save();
-        render();
-      }
-    });
-    action.append(btn);
-    tr.append(date, detail, amount, action);
-    list.append(tr);
+  if (!movements.length) {
+    list.textContent = "Ainda não existem movimentos neste mês.";
+    return;
+  }
+  movements.forEach(m => {
+    const item = document.createElement("div");
+    item.className = "item";
+    const title = document.createElement("strong");
+    title.textContent = m.descricao || m.categoria;
+    const details = document.createElement("div");
+    details.className = "small";
+    details.textContent = `${m.data} · ${m.tipo} · ${m.categoria}`;
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px";
+    const amount = document.createElement("strong");
+    amount.className = m.tipo === "Despesa" ? "expense" : "income";
+    amount.textContent = (m.tipo === "Despesa" ? "− " : "+ ") + money(m.valor);
+    const del = document.createElement("button");
+    del.textContent = "Apagar";
+    del.style.cssText = "width:auto;margin:0;padding:8px;background:#fff0f0;color:#b94343";
+    del.addEventListener("click", () => deleteMovement(m.id));
+    row.append(amount,del);
+    item.append(title,details,row);
+    list.append(item);
   });
 }
 
-$("movement-form").addEventListener("submit", event => {
-  event.preventDefault();
-  const amount = Number($("amount").value);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    alert("Introduz um valor superior a zero.");
+async function deleteMovement(id) {
+  if (!confirm("Queres apagar este movimento?")) return;
+  const {error} = await db.from("movimentos").delete().eq("id",id);
+  if (error) {
+    message("status", "Não foi possível apagar: " + error.message);
     return;
   }
-  movements.push({
-    id: crypto.randomUUID ? crypto.randomUUID() :
-      Date.now().toString() + Math.random().toString(16).slice(2),
-    type: $("type").value,
-    date: $("date").value,
-    category: $("category").value,
-    description: $("description").value.trim(),
-    amount: Math.round(amount * 100) / 100
-  });
-  save();
+  await loadMovements();
+}
+
+$("signin").addEventListener("click", () => signIn(false));
+$("signup").addEventListener("click", () => signIn(true));
+$("month").addEventListener("change", loadMovements);
+$("refresh").addEventListener("click", loadMovements);
+
+$("logout").addEventListener("click", async () => {
+  await db.auth.signOut();
+  currentUser = null;
+  movements = [];
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+});
+
+$("movement-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!currentUser) return;
+  const amount = Number($("amount").value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    message("status", "Introduz um valor superior a zero.");
+    return;
+  }
+  $("save").disabled = true;
+  const record = {
+    user_id: currentUser.id,
+    data: $("date").value,
+    tipo: $("type").value,
+    categoria: $("category").value,
+    descricao: $("description").value.trim(),
+    valor: Math.round(amount*100)/100
+  };
+  const {error} = await db.from("movimentos").insert(record);
+  $("save").disabled = false;
+  if (error) {
+    message("status", "Não foi possível guardar: " + error.message);
+    return;
+  }
   $("movement-form").reset();
-  $("date").value = localDate;
-  render();
+  $("date").value = today;
+  await loadMovements();
 });
 
-$("month").addEventListener("change", render);
-
-$("export").addEventListener("click", () => {
-  const rows = [["Data", "Tipo", "Categoria", "Descrição", "Valor"]];
-  movements
-    .filter(m => m.date.startsWith($("month").value))
-    .forEach(m => rows.push([
-      m.date, m.type, m.category, m.description, m.amount.toFixed(2)
-    ]));
-  const csv = "\uFEFF" + rows.map(row =>
-    row.map(value => '"' + String(value).replace(/"/g, '""') + '"').join(";")
-  ).join("\r\n");
-  const url = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8;" })
-  );
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "meu-orcamento-" + $("month").value + ".csv";
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-render();
+db = null;
+init();
 </script>
 </body>
 </html>
+
