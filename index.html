@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173d35">
+<title>Meu Orçamento</title>
+<style>
+:root {
+  --green: #173d35;
+  --light: #e7f3ed;
+  --bg: #f4f6f5;
+  --text: #202b27;
+  --muted: #697670;
+  --red: #b94343;
+  --border: #e1e7e3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+header {
+  background: var(--green);
+  color: white;
+  padding: 24px max(18px, calc((100% - 1050px)/2));
+}
+header h1 { margin: 0 0 6px; font-size: 25px; }
+header p { margin: 0; color: #d3e5dc; font-size: 14px; }
+main { max-width: 1050px; margin: auto; padding: 22px 16px 40px; }
+.month-row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.month-row label { font-weight: 700; }
+input, select, button {
+  font: inherit; border-radius: 9px; padding: 11px;
+}
+input, select {
+  border: 1px solid #ccd6d0; background: white; width: 100%;
+  min-width: 0; color: var(--text);
+}
+.month-row input { width: auto; }
+.cards {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 22px;
+}
+.card, .panel {
+  background: white; border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px;
+}
+.card span { color: var(--muted); font-size: 13px; }
+.card strong { display: block; font-size: clamp(18px, 3vw, 25px); margin-top: 10px; overflow-wrap: anywhere; }
+.income { color: #24804f; }
+.expense { color: var(--red); }
+.panel { margin-bottom: 20px; }
+.panel h2 { margin: 0 0 17px; font-size: 19px; }
+form {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: 700; }
+.full { grid-column: 1 / -1; }
+button {
+  border: 0; background: var(--green); color: white;
+  font-weight: 700; cursor: pointer;
+}
+button:hover { opacity: .9; }
+.secondary { background: var(--light); color: var(--green); }
+.delete { background: #fff0f0; color: var(--red); padding: 8px 10px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-size: 12px; }
+td:last-child, th:last-child { text-align: right; }
+.empty { text-align: center; padding: 28px 8px; color: var(--muted); }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 20px; }
+@media(max-width: 620px) {
+  main { padding: 16px 12px 28px; }
+  .cards { grid-template-columns: 1fr; gap: 9px; }
+  .card { padding: 14px 16px; }
+  .card strong { margin-top: 5px; }
+  form { grid-template-columns: 1fr; }
+  .full { grid-column: auto; }
+  th, td { padding: 10px 6px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Meu Orçamento</h1>
+  <p>As tuas contas, organizadas num só lugar.</p>
+</header>
+
+<main>
+  <div class="month-row">
+    <label for="month">Resumo mensal</label>
+    <input type="month" id="month">
+  </div>
+
+  <section class="cards">
+    <div class="card">
+      <span>Rendimentos</span>
+      <strong class="income" id="income">0,00 €</strong>
+    </div>
+    <div class="card">
+      <span>Despesas</span>
+      <strong class="expense" id="expenses">0,00 €</strong>
+    </div>
+    <div class="card">
+      <span>Saldo do mês</span>
+      <strong id="balance">0,00 €</strong>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Adicionar movimento</h2>
+    <form id="movement-form">
+      <div class="field">
+        <label for="type">Tipo</label>
+        <select id="type" required>
+          <option value="Despesa">Despesa</option>
+          <option value="Rendimento">Rendimento</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="date">Data</label>
+        <input type="date" id="date" required>
+      </div>
+      <div class="field">
+        <label for="category">Categoria</label>
+        <select id="category" required>
+          <option>Casa</option>
+          <option>Alimentação</option>
+          <option>Carro</option>
+          <option>Combustível</option>
+          <option>Transportes</option>
+          <option>Saúde</option>
+          <option>Educação</option>
+          <option>Ginásio</option>
+          <option>Telecomunicações</option>
+          <option>Seguros</option>
+          <option>Lazer</option>
+          <option>Salário</option>
+          <option>Subsídios</option>
+          <option>Outros</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="amount">Valor (€)</label>
+        <input type="number" id="amount" min="0.01" step="0.01"
+          placeholder="Ex.: 25,50" required>
+      </div>
+      <div class="field full">
+        <label for="description">Descrição</label>
+        <input type="text" id="description" maxlength="120"
+          placeholder="Ex.: Compra no supermercado">
+      </div>
+      <div class="full">
+        <button type="submit">+ Guardar movimento</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Movimentos do mês</h2>
+    <div class="actions" style="margin-bottom:14px">
+      <button class="secondary" id="export">Exportar CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Movimento</th><th>Valor</th><th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="movement-list"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty">Ainda não existem movimentos neste mês.</div>
+  </section>
+  <footer>Meu Orçamento · Os teus dados ficam guardados neste navegador.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const money = value => value.toLocaleString("pt-PT", {
+  style: "currency", currency: "EUR"
+});
+const today = new Date();
+const localDate = [
+  today.getFullYear(),
+  String(today.getMonth() + 1).padStart(2, "0"),
+  String(today.getDate()).padStart(2, "0")
+].join("-");
+
+$("month").value = localDate.slice(0, 7);
+$("date").value = localDate;
+
+let movements = [];
+try {
+  const saved = localStorage.getItem("meu-orcamento-movimentos-v1");
+  movements = saved ? JSON.parse(saved) : [];
+  if (!Array.isArray(movements)) movements = [];
+} catch {
+  movements = [];
+}
+
+function save() {
+  localStorage.setItem(
+    "meu-orcamento-movimentos-v1",
+    JSON.stringify(movements)
+  );
+}
+
+function render() {
+  const month = $("month").value;
+  const filtered = movements
+    .filter(m => m.date.startsWith(month))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const income = filtered
+    .filter(m => m.type === "Rendimento")
+    .reduce((sum, m) => sum + m.amount, 0);
+  const expenses = filtered
+    .filter(m => m.type === "Despesa")
+    .reduce((sum, m) => sum + m.amount, 0);
+  const balance = income - expenses;
+
+  $("income").textContent = money(income);
+  $("expenses").textContent = money(expenses);
+  $("balance").textContent = money(balance);
+  $("balance").className = balance < 0 ? "expense" : "income";
+
+  const list = $("movement-list");
+  list.replaceChildren();
+  $("empty").hidden = filtered.length > 0;
+
+  filtered.forEach(m => {
+    const tr = document.createElement("tr");
+    const date = document.createElement("td");
+    date.textContent = m.date.split("-").reverse().join("/");
+    const detail = document.createElement("td");
+    const name = document.createElement("strong");
+    name.textContent = m.description || m.category;
+    const small = document.createElement("div");
+    small.style.cssText = "color:#697670;font-size:12px;margin-top:4px";
+    small.textContent = m.type + " · " + m.category;
+    detail.append(name, small);
+
+    const amount = document.createElement("td");
+    amount.textContent = (m.type === "Despesa" ? "− " : "+ ") + money(m.amount);
+    amount.className = m.type === "Despesa" ? "expense" : "income";
+
+    const action = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.className = "delete";
+    btn.textContent = "Apagar";
+    btn.setAttribute("aria-label", "Apagar movimento");
+    btn.addEventListener("click", () => {
+      if (confirm("Queres apagar este movimento?")) {
+        movements = movements.filter(item => item.id !== m.id);
+        save();
+        render();
+      }
+    });
+    action.append(btn);
+    tr.append(date, detail, amount, action);
+    list.append(tr);
+  });
+}
+
+$("movement-form").addEventListener("submit", event => {
+  event.preventDefault();
+  const amount = Number($("amount").value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    alert("Introduz um valor superior a zero.");
+    return;
+  }
+  movements.push({
+    id: crypto.randomUUID ? crypto.randomUUID() :
+      Date.now().toString() + Math.random().toString(16).slice(2),
+    type: $("type").value,
+    date: $("date").value,
+    category: $("category").value,
+    description: $("description").value.trim(),
+    amount: Math.round(amount * 100) / 100
+  });
+  save();
+  $("movement-form").reset();
+  $("date").value = localDate;
+  render();
+});
+
+$("month").addEventListener("change", render);
+
+$("export").addEventListener("click", () => {
+  const rows = [["Data", "Tipo", "Categoria", "Descrição", "Valor"]];
+  movements
+    .filter(m => m.date.startsWith($("month").value))
+    .forEach(m => rows.push([
+      m.date, m.type, m.category, m.description, m.amount.toFixed(2)
+    ]));
+  const csv = "\uFEFF" + rows.map(row =>
+    row.map(value => '"' + String(value).replace(/"/g, '""') + '"').join(";")
+  ).join("\r\n");
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8;" })
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "meu-orcamento-" + $("month").value + ".csv";
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+render();
+</script>
+</body>
+</html>
