@@ -1,2 +1,2 @@
-# meu-or-amento
+# meu orçamento
 Aplicação pessoal de gestão de despesas e rendimentos
